@@ -790,6 +790,13 @@ public abstract class AbstractRipper
     }
 
     protected boolean shouldIgnoreURL(URL url) {
+        // Check if videos should be skipped
+        if (Utils.getConfigBoolean("download.skip_videos", false) && isVideoURL(url)) {
+            logger.info("[!] Skipping video file: " + url);
+            return true;
+        }
+
+        // Check for ignored extensions
         final String[] ignoredExtensions = Utils.getConfigStringArray("download.ignore_extensions");
         if (ignoredExtensions == null || ignoredExtensions.length == 0)
             return false; // nothing ignored
@@ -799,6 +806,22 @@ public abstract class AbstractRipper
         String extension = pathElements[pathElements.length - 1];
         for (String ignoredExtension : ignoredExtensions) {
             if (ignoredExtension.equalsIgnoreCase(extension)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if a URL points to a video file based on its extension
+     * @param url URL to check
+     * @return true if the URL points to a video file
+     */
+    protected boolean isVideoURL(URL url) {
+        String[] videoExtensions = {"mp4", "webm", "m4v", "avi", "mov", "flv", "wmv", "mpg", "mpeg"};
+        String path = url.getPath().toLowerCase();
+        for (String ext : videoExtensions) {
+            if (path.endsWith("." + ext)) {
                 return true;
             }
         }
